@@ -1,0 +1,82 @@
+{
+  "entities": {
+    "Inquiry": {
+      "title": "Inquiry",
+      "description": "Customer inquiry for car scrapping",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Customer name" },
+        "contact": { "type": "string", "description": "Contact number" },
+        "carType": { "type": "string", "description": "Car model/type" },
+        "carYear": { "type": "string", "description": "Car year" },
+        "location": { "type": "string", "description": "Car location" },
+        "message": { "type": "string", "description": "Additional details" },
+        "status": { "type": "string", "enum": ["pending", "contacted", "completed"], "description": "Inquiry status" },
+        "memo": { "type": "string", "description": "Admin memo" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "contact", "carType", "carYear", "location", "status", "createdAt"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "Blog post or notice",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "summary": { "type": "string" },
+        "content": { "type": "string" },
+        "category": { "type": "string", "enum": ["notice", "blog"] },
+        "thumbnail": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "content", "category", "createdAt"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Customer review",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "rating": { "type": "number" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "rating", "content", "createdAt"]
+    },
+    "SiteSettings": {
+      "title": "SiteSettings",
+      "description": "Global site settings and content",
+      "type": "object",
+      "properties": {
+        "heroTitle": { "type": "string" },
+        "heroSubtitle": { "type": "string" },
+        "companyName": { "type": "string" },
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "hours": { "type": "string" },
+        "primaryColor": { "type": "string" },
+        "metaTitle": { "type": "string" },
+        "metaDescription": { "type": "string" }
+      },
+      "required": ["heroTitle", "heroSubtitle", "companyName", "address", "phone", "hours", "primaryColor", "metaTitle", "metaDescription"]
+    }
+  },
+  "firestore": {
+    "inquiries": {
+      "schema": { "$ref": "#/entities/Inquiry" },
+      "description": "Collection of customer inquiries"
+    },
+    "posts": {
+      "schema": { "$ref": "#/entities/Post" },
+      "description": "Collection of blog posts and notices"
+    },
+    "reviews": {
+      "schema": { "$ref": "#/entities/Review" },
+      "description": "Collection of customer reviews"
+    },
+    "settings": {
+      "schema": { "$ref": "#/entities/SiteSettings" },
+      "description": "Singleton collection for site settings (document ID: 'global')"
+    }
+  }
+}
