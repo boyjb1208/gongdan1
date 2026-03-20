@@ -92,8 +92,14 @@ export function Layout() {
               <p className="text-gray-400 text-sm leading-relaxed mb-2">
                 운영시간: {settings.hours}
               </p>
-              <p className="text-gray-400 text-sm leading-relaxed">
+              <p className="text-gray-400 text-sm leading-relaxed mb-2">
                 대표전화: {settings.phone}
+              </p>
+              <p className="text-gray-400 text-sm leading-relaxed mb-2">
+                사업자등록번호: 295-15-02895
+              </p>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                대표자: 이원희외 1명
               </p>
             </div>
             <div className="flex flex-col md:items-end justify-end">
