@@ -1,111 +1,122 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
     // ===============================================================
     // Helper Functions
     // ===============================================================
-    function isAuthenticated() {
+    function isSignedIn() {
       return request.auth != null;
     }
 
     function isAdmin() {
-      return isAuthenticated() && request.auth.token.email == "boyjb1208@gmail.com" && request.auth.token.email_verified == true;
+      return isSignedIn() && 
+             request.auth.token.email == "boyjb1208@gmail.com" && 
+             request.auth.token.email_verified == true;
     }
 
-    function hasOnlyAllowedFields(fields) {
-      return request.resource.data.keys().hasOnly(fields);
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
-    function validStringLength(field, minLen, maxLen) {
-      return request.resource.data[field] is string &&
-        request.resource.data[field].size() >= minLen &&
-        request.resource.data[field].size() <= maxLen;
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
     }
 
     // ===============================================================
     // Domain Validators
     // ===============================================================
-    function isValidInquiry() {
-      return hasOnlyAllowedFields(['name', 'contact', 'carType', 'carYear', 'location', 'message', 'status', 'memo', 'createdAt']) &&
-             validStringLength('name', 1, 50) &&
-             validStringLength('contact', 1, 20) &&
-             validStringLength('carType', 1, 100) &&
-             validStringLength('carYear', 1, 20) &&
-             validStringLength('location', 1, 100) &&
-             (!('message' in request.resource.data) || validStringLength('message', 0, 1000)) &&
-             request.resource.data.status in ['pending', 'contacted', 'completed'] &&
-             (!('memo' in request.resource.data) || validStringLength('memo', 0, 1000)) &&
-             request.resource.data.createdAt is timestamp;
+    function isValidInquiry(data) {
+      return data.keys().hasAll(['name', 'contact', 'carType', 'carYear', 'location', 'status', 'createdAt']) &&
+             data.keys().hasOnly(['name', 'contact', 'carType', 'carYear', 'location', 'message', 'status', 'memo', 'createdAt']) &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 50 &&
+             data.contact is string && data.contact.size() >= 1 && data.contact.size() <= 20 &&
+             data.carType is string && data.carType.size() >= 1 && data.carType.size() <= 100 &&
+             data.carYear is string && data.carYear.size() >= 1 && data.carYear.size() <= 20 &&
+             data.location is string && data.location.size() >= 1 && data.location.size() <= 100 &&
+             (!('message' in data) || (data.message is string && data.message.size() <= 1000)) &&
+             data.status in ['pending', 'contacted', 'completed'] &&
+             (!('memo' in data) || (data.memo is string && data.memo.size() <= 1000)) &&
+             data.createdAt is timestamp;
     }
 
-    function isValidPost() {
-      return hasOnlyAllowedFields(['title', 'summary', 'content', 'category', 'thumbnail', 'createdAt']) &&
-             validStringLength('title', 1, 200) &&
-             (!('summary' in request.resource.data) || validStringLength('summary', 0, 500)) &&
-             validStringLength('content', 1, 10000) &&
-             request.resource.data.category in ['notice', 'blog'] &&
-             (!('thumbnail' in request.resource.data) || validStringLength('thumbnail', 0, 1000)) &&
-             request.resource.data.createdAt is timestamp;
+    function isValidPost(data) {
+      return data.keys().hasAll(['title', 'content', 'category', 'createdAt']) &&
+             data.keys().hasOnly(['title', 'summary', 'content', 'category', 'thumbnail', 'createdAt']) &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 200 &&
+             (!('summary' in data) || (data.summary is string && data.summary.size() <= 500)) &&
+             data.content is string && data.content.size() >= 1 && data.content.size() <= 10000 &&
+             data.category in ['notice', 'blog'] &&
+             (!('thumbnail' in data) || (data.thumbnail is string && data.thumbnail.size() <= 1000)) &&
+             data.createdAt is timestamp;
     }
 
-    function isValidReview() {
-      return hasOnlyAllowedFields(['name', 'rating', 'content', 'createdAt']) &&
-             validStringLength('name', 1, 50) &&
-             request.resource.data.rating is number &&
-             request.resource.data.rating >= 1 && request.resource.data.rating <= 5 &&
-             validStringLength('content', 1, 1000) &&
-             request.resource.data.createdAt is timestamp;
+    function isValidReview(data) {
+      return data.keys().hasAll(['name', 'rating', 'content', 'createdAt']) &&
+             data.keys().hasOnly(['name', 'rating', 'content', 'createdAt']) &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 50 &&
+             data.rating is number && data.rating >= 1 && data.rating <= 5 &&
+             data.content is string && data.content.size() >= 1 && data.content.size() <= 1000 &&
+             data.createdAt is timestamp;
     }
 
-    function isValidSettings() {
-      return hasOnlyAllowedFields(['heroTitle', 'heroSubtitle', 'companyName', 'address', 'phone', 'hours', 'primaryColor', 'metaTitle', 'metaDescription']) &&
-             validStringLength('heroTitle', 1, 100) &&
-             validStringLength('heroSubtitle', 1, 200) &&
-             validStringLength('companyName', 1, 100) &&
-             validStringLength('address', 1, 200) &&
-             validStringLength('phone', 1, 50) &&
-             validStringLength('hours', 1, 100) &&
-             validStringLength('primaryColor', 1, 20) &&
-             validStringLength('metaTitle', 1, 100) &&
-             validStringLength('metaDescription', 1, 300);
+    function isValidSettings(data) {
+      return data.keys().hasAll(['heroTitle', 'heroSubtitle', 'companyName', 'address', 'phone', 'hours', 'primaryColor', 'metaTitle', 'metaDescription']) &&
+             data.keys().hasOnly(['heroTitle', 'heroSubtitle', 'companyName', 'address', 'phone', 'hours', 'primaryColor', 'metaTitle', 'metaDescription']) &&
+             data.heroTitle is string && data.heroTitle.size() <= 100 &&
+             data.heroSubtitle is string && data.heroSubtitle.size() <= 200 &&
+             data.companyName is string && data.companyName.size() <= 100 &&
+             data.address is string && data.address.size() <= 200 &&
+             data.phone is string && data.phone.size() <= 50 &&
+             data.hours is string && data.hours.size() <= 100 &&
+             data.primaryColor is string && data.primaryColor.size() <= 20 &&
+             data.metaTitle is string && data.metaTitle.size() <= 100 &&
+             data.metaDescription is string && data.metaDescription.size() <= 300;
     }
 
     // ===============================================================
-    // Rules
+    // Matches
     // ===============================================================
     match /inquiries/{inquiryId} {
-      // Anyone can create an inquiry
-      allow create: if isValidInquiry() && request.resource.data.status == 'pending';
-      // Only admin can read, update, delete
-      allow read, delete: if isAdmin();
-      allow update: if isAdmin() && isValidInquiry();
+      allow create: if isValidId(inquiryId) && isValidInquiry(incoming()) && incoming().status == 'pending';
+      allow list: if isAdmin();
+      allow get, delete: if isValidId(inquiryId) && isAdmin();
+      allow update: if isValidId(inquiryId) && isAdmin() && isValidInquiry(incoming());
     }
 
     match /posts/{postId} {
-      // Anyone can read posts
-      allow read: if true;
-      // Only admin can create, update, delete
-      allow create: if isAdmin() && isValidPost();
-      allow update: if isAdmin() && isValidPost();
-      allow delete: if isAdmin();
+      allow list: if true;
+      allow get: if isValidId(postId);
+      allow create: if isValidId(postId) && isAdmin() && isValidPost(incoming());
+      allow update: if isValidId(postId) && isAdmin() && isValidPost(incoming());
+      allow delete: if isValidId(postId) && isAdmin();
     }
 
     match /reviews/{reviewId} {
-      // Anyone can read reviews
-      allow read: if true;
-      // Only admin can create, update, delete
-      allow create: if isAdmin() && isValidReview();
-      allow update: if isAdmin() && isValidReview();
-      allow delete: if isAdmin();
+      allow list: if true;
+      allow get: if isValidId(reviewId);
+      allow create: if isValidId(reviewId) && isAdmin() && isValidReview(incoming());
+      allow update: if isValidId(reviewId) && isAdmin() && isValidReview(incoming());
+      allow delete: if isValidId(reviewId) && isAdmin();
     }
 
     match /settings/{settingId} {
-      // Anyone can read settings
-      allow read: if true;
-      // Only admin can create, update
-      allow create: if isAdmin() && isValidSettings();
-      allow update: if isAdmin() && isValidSettings();
-      allow delete: if false; // Settings shouldn't be deleted
+      allow list: if true;
+      allow get: if isValidId(settingId);
+      // Allow initial creation by anyone if it's the global doc and doesn't exist yet
+      // This is a bootstrap helper to avoid "insufficient permissions" on first load
+      allow create: if isValidId(settingId) && settingId == 'global' && 
+                    (!exists(/databases/$(database)/documents/settings/global) || isAdmin()) && 
+                    isValidSettings(incoming());
+      allow update: if isValidId(settingId) && isAdmin() && isValidSettings(incoming());
     }
   }
 }

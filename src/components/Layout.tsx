@@ -31,7 +31,7 @@ export function Layout() {
             <a href="#process" className="text-sm font-medium hover:text-primary transition-colors">진행절차</a>
             <a href="#reviews" className="text-sm font-medium hover:text-primary transition-colors">고객후기</a>
             <a href="#contact" className="text-sm font-medium hover:text-primary transition-colors">상담문의</a>
-            <a href="tel:010-8794-8484" className="flex items-center gap-2 bg-primary text-dark px-5 py-2.5 rounded-full font-bold hover:bg-primary/90 transition-colors">
+            <a href={`tel:${settings.phone}`} className="flex items-center gap-2 bg-primary text-dark px-5 py-2.5 rounded-full font-bold hover:bg-primary/90 transition-colors">
               <Phone size={18} />
               <span>{settings.phone}</span>
             </a>
@@ -58,7 +58,7 @@ export function Layout() {
               <a href="#process" onClick={() => setIsMenuOpen(false)} className="text-2xl font-bold">진행절차</a>
               <a href="#reviews" onClick={() => setIsMenuOpen(false)} className="text-2xl font-bold">고객후기</a>
               <a href="#contact" onClick={() => setIsMenuOpen(false)} className="text-2xl font-bold">상담문의</a>
-              <a href="tel:010-8794-8484" className="flex items-center justify-center gap-2 bg-primary text-dark px-6 py-4 rounded-xl font-bold mt-4">
+              <a href={`tel:${settings.phone}`} onClick={() => setIsMenuOpen(false)} className="flex items-center justify-center gap-2 bg-primary text-dark px-6 py-4 rounded-xl font-bold mt-4">
                 <Phone size={20} />
                 <span>전화 상담하기</span>
               </a>

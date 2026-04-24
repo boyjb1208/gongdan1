@@ -8,7 +8,7 @@ const defaultSettings: SiteSettings = {
   heroSubtitle: '공단폐차장',
   companyName: '공단폐차장',
   address: '강원특별자치도 강릉시 강변로 670번길 4',
-  phone: '010-8794-8484',
+  phone: '010-8784-9173',
   hours: '24시간 연중무휴',
   primaryColor: '#FFD000',
   metaTitle: '공단폐차장 | 믿을 수 있는 자동차 폐차 서비스',
@@ -31,10 +31,20 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data() as SiteSettings;
-        setSettings({ ...defaultSettings, ...data });
+        // Migration: If the phone number is the old one, force use the new one in the UI
+        // and try to update the database if permissions allow.
+        const updatedData = { ...data };
+        if (data.phone === '010-8794-8484') {
+          updatedData.phone = '010-8784-9173';
+          setDoc(docRef, { phone: '010-8784-9173' }, { merge: true }).catch(() => {
+            // Silently fail if not admin, but the UI will still show the correct number
+          });
+        }
+        setSettings({ ...defaultSettings, ...updatedData });
       } else {
-        // Initialize default settings if they don't exist
-        setDoc(docRef, defaultSettings).catch(console.error);
+        // We only allow admins to initialize settings to prevent permission errors for visitors
+        // The first visit by an admin will trigger the rules-based bootstrap if needed
+        console.log('Settings document not found. If you are an admin, please initialize settings.');
       }
       setLoading(false);
     }, (error) => {
